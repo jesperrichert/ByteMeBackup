@@ -27,7 +27,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # ggf. anpassen
+          dotnet-version: '10.0.x' 
 
       - name: Restore dependencies
         run: dotnet restore
@@ -41,7 +41,15 @@ jobs:
             -o publish/${{ matrix.rid }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}
+          archive: 'false'
+      - uses: softprops/action-gh-release@v2
+          with:
+            token: '${{ github.token }}'
+            tag_name: ${{ github.run_id }}
+            body: |
+              ByteMeBackup Auto Release for Github.
+            files: "backup-${{ matrix.rid }}"
