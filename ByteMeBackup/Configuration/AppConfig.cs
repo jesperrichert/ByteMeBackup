@@ -10,10 +10,10 @@ public class AppConfig
 public class BackupConfig
 {
     public string BackupPath { get; set; } = string.Empty;
+    public string[] BackupFiles { get; set; } = [];
+    public BackupMode BackupMode { get; set; } = BackupMode.Folder;
     public string BackupPrefix { get; set; } = string.Empty;
 
-    // Soon to be implemented
-    // public ??? BackupSchedule { get; set; } = ???;
     public BackupType BackupType { get; set; } = BackupType.MountedDrive;
     public string MountedDrivePath { get; set; } = string.Empty;
 }
@@ -30,4 +30,10 @@ public enum BackupType
 {
     ToServer,
     MountedDrive,
+}
+
+public enum BackupMode
+{
+    Files,
+    Folder,
 }

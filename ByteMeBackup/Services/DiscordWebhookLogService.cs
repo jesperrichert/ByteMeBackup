@@ -29,7 +29,6 @@ public class DiscordWebhookLogService
         {
             content = message,
             username = "ByteMeBackup",
-            avatar_url = "https://i.imgur.com/ytvbK23.png"
         };
 
         var response = await httpClient.PostAsJsonAsync(config.DiscordWebhookUrl, payload);
