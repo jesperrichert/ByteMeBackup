@@ -1,6 +1,6 @@
+using System.Formats.Tar;
 using System.IO.Compression;
 using ByteMeBackup.Configuration;
-using ByteMeBackup.Helper;
 using ByteMeBackup.Services;
 using Renci.SshNet;
 using Spectre.Console;
@@ -26,15 +26,15 @@ public class BackupTask
         try
         {
             await LogAsync("Starting backup task...", "[bold gray]Starting backup task...[/]");
+            await LogAsync("Backup for Config", $"Start Backup with path {BackupConfig.BackupPath}");
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var zipFileName = $"{BackupConfig.BackupPrefix}{timestamp}.zip";
+            var zipFileName = $"{BackupConfig.BackupPrefix}{timestamp}.tar.gz";
             var tempBackupPath = Path.GetTempPath() + BackupConfig.BackupPrefix + timestamp;
             var tempZipPath = Path.Combine(Path.GetTempPath(), zipFileName);
 
-
-            FileHelper.CopyDirectoryRecursive(BackupConfig.BackupPath, tempBackupPath, true);
-            ZipFile.CreateFromDirectory(tempBackupPath, tempZipPath);
+            await TarFile.CreateFromDirectoryAsync(BackupConfig.BackupPath, tempZipPath, true,
+                new CancellationToken(false));
 
             await LogAsync($"""
                             **Backup created successfully!** 
@@ -66,7 +66,6 @@ public class BackupTask
             try
             {
                 File.Delete(tempZipPath);
-                Directory.Delete(tempBackupPath, true);
                 await LogAsync(
                     "-# Temporary zip file deleted successfully!",
                     $"[grey]Deleted temporary file: {tempZipPath}[/]\n[grey]Deleted temporary file: {tempBackupPath}[/]"
