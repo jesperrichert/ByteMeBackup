@@ -28,19 +28,64 @@ public class BackupTask
             await LogAsync("Starting backup task...", "[bold gray]Starting backup task...[/]");
             await LogAsync("Backup for Config", $"Start Backup with path {BackupConfig.BackupPath}");
 
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             var zipFileName = $"{BackupConfig.BackupPrefix}{timestamp}.tar.gz";
             var tempBackupPath = Path.GetTempPath() + BackupConfig.BackupPrefix + timestamp;
             var tempZipPath = Path.Combine(Path.GetTempPath(), zipFileName);
 
-            await TarFile.CreateFromDirectoryAsync(BackupConfig.BackupPath, tempZipPath, true,
-                new CancellationToken(false));
+            await LogAsync($"Choosing Backup Mode {BackupConfig.BackupMode.ToString()}",
+                $"[white]Choosing Backup Mode \"{BackupConfig.BackupMode.ToString()}\"[/]");
+            switch (BackupConfig.BackupMode)
+            {
+                case BackupMode.Files:
+                {
+                    await LogAsync("-# Creating Temporary Backup Folder", $"[gray]Creating Temporary Backup Folder[/]");
+                    var uuid = $"{Guid.CreateVersion7().ToString()}-{timestamp}";
+                    var tempBackupFolder = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), uuid));
 
+                    try
+                    {
+                        await LogAsync("-# Collecting Files for File Backup.",
+                            $"[gray]Collecting Files for File Backup.[/]");
+                        foreach (var path in BackupConfig.BackupFiles)
+                        {
+                            await LogAsync($"-# Copy File {path} to backup.", $"[gray]Copy File {path} to backup.[/]");
+                            File.Copy(path, Path.Combine(tempBackupFolder.FullName, path.Split("/").Last()));
+                        }
+
+                        await LogAsync("-# Creating tag.gz file for backup.",
+                            "[gray]Creating tag.gz file for backup.[/]");
+                        await TarFile.CreateFromDirectoryAsync(tempBackupFolder.FullName, tempZipPath, true,
+                            new CancellationToken(false));
+                    }
+                    finally
+                    {
+                        foreach (var fileInfo in tempBackupFolder.GetFiles())
+                        {
+                            fileInfo.Delete();
+                        }
+                    }
+                }
+                    break;
+                case BackupMode.Folder:
+                {
+                    await LogAsync("-# Creating tag.gz file for backup.",
+                        "[gray]Creating tag.gz file for backup.");
+                    await TarFile.CreateFromDirectoryAsync(BackupConfig.BackupPath, tempZipPath, true,
+                        new CancellationToken(false));
+                }
+                    break;
+            }
+
+            var mode = BackupConfig.BackupMode == BackupMode.Files
+                ? $"Files: \n{string.Join(", \n> ", BackupConfig.BackupFiles)}"
+                : $"Directory: {BackupConfig.BackupPath}";
             await LogAsync($"""
                             **Backup created successfully!** 
-                            > Directory: {BackupConfig.BackupPath}
-                            > Zip File: {zipFileName}
-                            > Temp Zip Path: {tempZipPath}
+                            > Mode: {BackupConfig.BackupMode.ToString()}
+                            > {mode}
+                            > Backup-File: {zipFileName}
+                            > Temporary Path: {tempZipPath}
                             > Timestamp: {timestamp}
                             """,
                 $"[green]Backup created: {tempZipPath}[/]"
@@ -57,8 +102,8 @@ public class BackupTask
                     break;
 
                 default:
-                    var ex = new NotSupportedException($"Backup type {BackupConfig.BackupType} is not supported.");
-                    AnsiConsole.WriteException(ex);
+                    AnsiConsole.WriteException(
+                        new NotSupportedException($"Backup type {BackupConfig.BackupType} is not supported."));
                     await LogService.SendLogAsync($"❌ **Unsupported backup type:** {BackupConfig.BackupType}");
                     return;
             }
@@ -98,8 +143,6 @@ public class BackupTask
 
             File.Copy(sourceZipPath, targetPath, overwrite: true);
 
-            // home/test
-            // /home/backuo
             await LogAsync($"""
                             **Backup copied to mounted drive successfully!**
                             > File: {fileName}
