@@ -1,7 +1,7 @@
 name: Build C# Backup Executables
 
 on:
-  push: 
+  push:
     branches:
       - master
 
@@ -27,7 +27,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x' 
+          dotnet-version: '10.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -39,6 +39,8 @@ jobs:
             -p:PublishReadyToRun=true \
             -p:PublishSingleFile=true \
             -o publish/${{ matrix.rid }}
+
+      - run: "mv publish/${{ matrix.rid }}/ByteMeBackup publish/${{ matrix.rid }}/ByteMeBackup-${{ matrix.rid }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
