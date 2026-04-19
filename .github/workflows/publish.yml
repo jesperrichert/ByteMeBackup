@@ -1,6 +1,7 @@
 name: Build C# Backup Executables
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - master
