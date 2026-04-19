@@ -45,8 +45,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: "ByteMeBackup-${{ matrix.rid }}"
-          path: "publish/${{ matrix.rid }}/ByteMeBackup"
+          path: "publish/${{ matrix.rid }}/ByteMeBackup-${{ matrix.rid }}"
           archive: 'false'
       - uses: softprops/action-gh-release@v2
         with:
