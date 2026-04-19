@@ -70,7 +70,7 @@ public class BackupTask
                 case BackupMode.Folder:
                 {
                     await LogAsync("-# Creating tag.gz file for backup.",
-                        "[gray]Creating tag.gz file for backup.");
+                        "[gray]Creating tag.gz file for backup.[/]");
                     await TarFile.CreateFromDirectoryAsync(BackupConfig.BackupPath, tempZipPath, true,
                         new CancellationToken(false));
                 }
