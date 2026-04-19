@@ -52,4 +52,4 @@ jobs:
           tag_name: ${{ github.run_id }}
           body: |
             ByteMeBackup Auto Release for Github.
-          files: "backup-${{ matrix.rid }}"
+          files: "ByteMeBackup-${{ matrix.rid }}"
